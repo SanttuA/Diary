@@ -12,13 +12,18 @@ import android.text.format.DateFormat;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     Date date;
+    private DiaryDataSource dataSource;
+    private EditText diaryEditText;
+    private DiaryEntry currentEntry;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +32,14 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        diaryEditText = (EditText) findViewById(R.id.diaryEditText);
+
+        //SetupDiaryTextField();
+
+    }
+
+    private void SetupDiaryTextField()
+    {
         //Today's date
         date = new Date();
         String dateString = DateFormat.getDateFormat(getApplicationContext()).format(date);
@@ -34,8 +47,34 @@ public class MainActivity extends AppCompatActivity {
         setTitle(titleString);
 
         //get the database data for today's date if one exists
+        dataSource = new DiaryDataSource(this);
+        dataSource.Open();
 
-
+        List<DiaryEntry> values = dataSource.getAllEntries();
+        System.out.println("DiaryEntry size: "+values.size());
+        if(values.size() > 0)
+        {
+            System.out.println("Last diaryEntry date: " + values.get(values.size()-1).getDate() + " current date: "+dateString);
+            if(values.get(values.size()-1).getDate().equals(dateString) )
+            {
+                //date is the same as diary's last entry, use it
+                System.out.println("Date is the same as diary's last entry, use it");
+                currentEntry = values.get(values.size()-1);
+                System.out.println("Diary ID: "+currentEntry.getId()+ "Diary date: "+currentEntry.getDate()+"DiaryEntry: "+currentEntry.getDiaryEntry());
+                diaryEditText.setText(currentEntry.getDiaryEntry());
+            }
+            else
+            {
+                //date is new, create new entry
+                System.out.println("date is new, create new entry");
+                currentEntry = dataSource.createDiaryEntry(dateString);
+            }
+        }
+        else
+        {
+            //no entries exist, create a new entry
+            currentEntry = dataSource.createDiaryEntry(dateString);
+        }
     }
 
 
@@ -63,11 +102,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume()
+    {
+        //load the date into diary entry text
+        //dataSource.Open();
+        SetupDiaryTextField();
+
+        super.onResume();
+    }
+
+    @Override
     protected void onPause()
     {
-        super.onPause();
-
         //save the data in diary edit text
+        if(currentEntry != null)
+        {
+            currentEntry.setDiaryEntry(diaryEditText.getText().toString());
+            //System.out.println("DiaryEditText: "+diaryEditText.getText().toString());
+            dataSource.updateDiaryEntry(currentEntry);
+        }
+        else
+        {
+            System.out.println("CurrentEntry is null!");
+        }
+
+        dataSource.Close();
+
+        super.onPause();
     }
 
     public void GoToPreviousDiaryEntry()
@@ -81,13 +142,4 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private class AccessDatabaseTask extends AsyncTask<String, Void, String>
-    {
-        @Override
-        protected String doInBackground(String... params) {
-
-
-            return null;
-        }
-    }
 }
