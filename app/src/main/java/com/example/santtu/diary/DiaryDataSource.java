@@ -59,7 +59,6 @@ public class DiaryDataSource {
     {
         long id = entry.getId();
         ContentValues values = new ContentValues();
-        //values.put(MySQLiteHelper.COLUMN_DATE, entry.getDate());
         values.put(MySQLiteHelper.COLUMN_ENTRY, entry.getDiaryEntry());
         System.out.println("Updating diary entry with: "+entry.getDiaryEntry());
         int testInt = database.update(MySQLiteHelper.TABLE_DIARY, values, MySQLiteHelper.COLUMN_ID + " = ?",
@@ -80,9 +79,27 @@ public class DiaryDataSource {
             entries.add(entry);
             cursor.moveToNext();
         }
-        // make sure to close the cursor
         cursor.close();
         return entries;
+    }
+
+    public DiaryEntry getDiaryEntryById(long id) {
+
+        Cursor cursor = database.query(MySQLiteHelper.TABLE_DIARY, allColumns, MySQLiteHelper.COLUMN_ID + "=?",
+                new String[] { String.valueOf(id) }, null, null, null, null);
+        if (cursor != null)
+            cursor.moveToFirst();
+
+        DiaryEntry entry = cursorToEntry(cursor);
+        return entry;
+    }
+
+    public int getDiaryEntryCount() {
+        String countQuery = "SELECT  * FROM " + MySQLiteHelper.TABLE_DIARY;
+        Cursor cursor = database.rawQuery(countQuery, null);
+        int cnt = cursor.getCount();
+        cursor.close();
+        return cnt;
     }
 
     private DiaryEntry cursorToEntry(Cursor cursor) {

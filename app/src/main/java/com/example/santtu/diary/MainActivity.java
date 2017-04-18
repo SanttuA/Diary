@@ -1,20 +1,20 @@
 package com.example.santtu.diary;
 
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.format.DateFormat;
-import android.view.View;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.CalendarView;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
         diaryEditText = (EditText) findViewById(R.id.diaryEditText);
 
-        //SetupDiaryTextField();
+        SetupDiaryTextField();
 
     }
 
@@ -43,7 +43,8 @@ public class MainActivity extends AppCompatActivity {
         //Today's date
         date = new Date();
         String dateString = DateFormat.getDateFormat(getApplicationContext()).format(date);
-        String titleString = getTitle() + " - " + dateString;
+
+        String titleString = getResources().getText(R.string.app_name) + " - " + dateString;
         setTitle(titleString);
 
         //get the database data for today's date if one exists
@@ -77,6 +78,26 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //reload currentEntry's data into title and diary edit text
+    private void ReloadEntryData()
+    {
+        if(currentEntry != null)
+        {
+            System.out.println("currentEntry is not null");
+            //reload data
+            diaryEditText.setText(currentEntry.getDiaryEntry());
+            //title according to diary entry's date
+            String titleString = getResources().getText(R.string.app_name) + " - " + currentEntry.getDate();
+            setTitle(titleString);
+        }
+        else
+        {
+            System.out.println("currentEntry is null");
+            //currentEntry doesn't exist anymore, recreate it with SetupDiaryTextField()
+            SetupDiaryTextField();
+        }
+    }
+
 
 
     @Override
@@ -105,14 +126,30 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume()
     {
         //load the date into diary entry text
-        //dataSource.Open();
-        SetupDiaryTextField();
+
+        if(dataSource != null)
+            dataSource.Open();
+        else
+        {
+            dataSource = new DiaryDataSource(this);
+            dataSource.Open();
+        }
+        ReloadEntryData();
 
         super.onResume();
     }
 
     @Override
     protected void onPause()
+    {
+        SaveCurrentEntryData();
+        dataSource.Close();
+
+        super.onPause();
+    }
+
+    //saves currentEntry's diary entry into database
+    private void SaveCurrentEntryData()
     {
         //save the data in diary edit text
         if(currentEntry != null)
@@ -125,20 +162,75 @@ public class MainActivity extends AppCompatActivity {
         {
             System.out.println("CurrentEntry is null!");
         }
-
-        dataSource.Close();
-
-        super.onPause();
     }
 
-    public void GoToPreviousDiaryEntry()
+    //saves current diary entry and moves to previous entry if one exists
+    public void GoToPreviousDiaryEntry(View view)
     {
         //if previous exists, load previous diary entry from database
+        long index = currentEntry.getId();
+        System.out.println("currentEntry's ID: " +index);
+        if(index > 1)
+        {
+            SaveCurrentEntryData();
+            currentEntry = dataSource.getDiaryEntryById(index-1);
+            ReloadEntryData();
+        }
+        else
+        {
+            //index is 1, don't allow going backwards
+            System.out.println("index is 1, don't allow going backwards");
+        }
     }
 
-    public void GoToNextDiaryEntry()
+    //saves current diary entry and moves to next entry if one exists
+    public void GoToNextDiaryEntry(View view)
     {
         //if next exists, load next diary entry from database
+        //if previous exists, load previous diary entry from database
+        long index = currentEntry.getId();
+        System.out.println("currentEntry's ID: " +index);
+        if(index <  dataSource.getDiaryEntryCount())
+        {
+            SaveCurrentEntryData();
+            currentEntry = dataSource.getDiaryEntryById(index+1);
+            ReloadEntryData();
+        }
+        else
+        {
+            //index is last in list, don't allow going forward
+            System.out.println("index is last in list, don't allow going forward");
+        }
+    }
+
+    public void OpenCalendar(View view)
+    {
+        LayoutInflater inflater = (LayoutInflater)getApplicationContext().getSystemService
+                (Context.LAYOUT_INFLATER_SERVICE);
+        LinearLayout ll= (LinearLayout)inflater.inflate(R.layout.calendar_popup, null, false);
+        CalendarView cv = (CalendarView) ll.getChildAt(0);
+        cv.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+
+            @Override
+            public void onSelectedDayChange(CalendarView view, int year, int month,
+                                            int dayOfMonth) {
+                // TODO Auto-generated method stub
+                //initScheduleEvent();
+            }
+        });
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Diary Calendar")
+                .setView(ll)
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        //do nothing...yet
+                    }
+                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        // Do nothing.
+                    }
+                }
+        ).show();
     }
 
 
