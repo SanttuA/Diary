@@ -9,6 +9,7 @@ import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 
@@ -162,9 +163,11 @@ public class MainActivity extends AppCompatActivity {
         System.out.println("currentEntry's ID: " +index);
         if(index > 1)
         {
+            diaryEditText.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_to_right));
             SaveCurrentEntryData();
             currentEntry = dataSource.getDiaryEntryById(index-1);
             ReloadEntryData();
+            diaryEditText.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_from_left));
         }
         else
         {
@@ -180,9 +183,11 @@ public class MainActivity extends AppCompatActivity {
         long index = currentEntry.getId();
         if(index <  dataSource.getDiaryEntryCount())
         {
+            diaryEditText.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_to_left));
             SaveCurrentEntryData();
             currentEntry = dataSource.getDiaryEntryById(index+1);
             ReloadEntryData();
+            diaryEditText.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_from_right));
         }
         else
         {
