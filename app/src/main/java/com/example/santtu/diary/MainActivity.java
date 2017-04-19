@@ -207,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
     public void OpenDiaryEntryList(View view)
     {
         AlertDialog.Builder builderSingle = new AlertDialog.Builder(MainActivity.this);
-        builderSingle.setTitle("Select a diary page");
+        builderSingle.setTitle(getResources().getText(R.string.select_a_page));
 
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
         if(dataSource != null)
@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+        builderSingle.setNegativeButton(getResources().getText(R.string.cancel), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
