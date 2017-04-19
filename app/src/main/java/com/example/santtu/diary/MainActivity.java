@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.CalendarView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -203,34 +204,38 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void OpenCalendar(View view)
+    public void OpenDiaryEntryList(View view)
     {
-        LayoutInflater inflater = (LayoutInflater)getApplicationContext().getSystemService
-                (Context.LAYOUT_INFLATER_SERVICE);
-        LinearLayout ll= (LinearLayout)inflater.inflate(R.layout.calendar_popup, null, false);
-        CalendarView cv = (CalendarView) ll.getChildAt(0);
-        cv.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+        AlertDialog.Builder builderSingle = new AlertDialog.Builder(MainActivity.this);
+        builderSingle.setTitle("Select a diary page");
 
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
+        if(dataSource != null)
+        {
+            List<DiaryEntry> values = dataSource.getAllEntries();
+            for(int i = 0; i < values.size(); i++)
+            {
+                arrayAdapter.add(values.get(i).getId() + ". " + values.get(i).getDate());
+            }
+        }
+
+        builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
             @Override
-            public void onSelectedDayChange(CalendarView view, int year, int month,
-                                            int dayOfMonth) {
-                // TODO Auto-generated method stub
-                //initScheduleEvent();
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
             }
         });
-        new AlertDialog.Builder(MainActivity.this)
-                .setTitle("Diary Calendar")
-                .setView(ll)
-                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        //do nothing...yet
-                    }
-                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        // Do nothing.
-                    }
-                }
-        ).show();
+
+        builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String strName = arrayAdapter.getItem(which);
+                SaveCurrentEntryData();
+                currentEntry = dataSource.getDiaryEntryById(which+1);
+                ReloadEntryData();
+            }
+        });
+        builderSingle.show();
     }
 
 
