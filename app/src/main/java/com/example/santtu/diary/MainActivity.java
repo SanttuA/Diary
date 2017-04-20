@@ -32,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
         diaryEditText = (EditText) findViewById(R.id.diaryEditText);
 
         SetupDiaryTextField();
-
     }
 
     //Sets the activity's title according to date and loads today's entry if one exists.
@@ -50,13 +49,13 @@ public class MainActivity extends AppCompatActivity {
         dataSource = new DiaryDataSource(this);
         dataSource.Open();
 
-        List<DiaryEntry> values = dataSource.getAllEntries();
-        if(values.size() > 0)
+        //List<DiaryEntry> values = dataSource.getAllEntries();
+        if(dataSource.getDiaryEntryCount() > 0)
         {
-            if(values.get(values.size()-1).getDate().equals(dateString) )
+            if(dataSource.getLastDiaryEntry().getDate().equals(dateString) )
             {
                 //date is the same as diary's last entry, use it
-                currentEntry = values.get(values.size()-1);
+                currentEntry = dataSource.getLastDiaryEntry();
                 diaryEditText.setText(currentEntry.getDiaryEntry());
             }
             else
@@ -70,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
             //no entries exist, create a new entry
             currentEntry = dataSource.createDiaryEntry(dateString);
         }
+
+
+
     }
 
     //reload currentEntry's data into title and diary edit text
@@ -127,6 +129,16 @@ public class MainActivity extends AppCompatActivity {
         }
         ReloadEntryData();
 
+        //check if date has changed since app start
+        Date date = new Date();
+        String dateString = DateFormat.getDateFormat(getApplicationContext()).format(date);
+
+        if(!dataSource.getLastDiaryEntry().getDate().equals(dateString))
+        {
+            //date has changed since onCreate/app start. Create new entry for the new date.
+            dataSource.createDiaryEntry(dateString);
+        }
+
         super.onResume();
     }
 
@@ -160,7 +172,6 @@ public class MainActivity extends AppCompatActivity {
     {
         //if previous exists, load previous diary entry from database
         long index = currentEntry.getId();
-        System.out.println("currentEntry's ID: " +index);
         if(index > 1)
         {
             diaryEditText.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_to_right));

@@ -63,8 +63,6 @@ public class DiaryDataSource {
         System.out.println("Updating diary entry with: "+entry.getDiaryEntry());
         int testInt = database.update(MySQLiteHelper.TABLE_DIARY, values, MySQLiteHelper.COLUMN_ID + " = ?",
                 new String[] {String.valueOf(id)});
-
-        System.out.println("TestInt: "+testInt);
     }
 
     public List<DiaryEntry> getAllEntries() {
@@ -90,8 +88,14 @@ public class DiaryDataSource {
         if (cursor != null)
             cursor.moveToFirst();
 
-        DiaryEntry entry = cursorToEntry(cursor);
-        return entry;
+        return cursorToEntry(cursor);
+    }
+
+    public DiaryEntry getLastDiaryEntry(){
+        Cursor cursor = database.query(MySQLiteHelper.TABLE_DIARY, allColumns,null, null, null, null, null);
+        cursor.moveToLast();
+
+        return cursorToEntry(cursor);
     }
 
     public int getDiaryEntryCount() {
