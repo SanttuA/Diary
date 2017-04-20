@@ -8,4 +8,5 @@
     <string name="page_selection">Pages</string>
     <string name="select_a_page">Select a diary page</string>
     <string name="cancel">Cancel</string>
+    <string name="page">Page</string>
 </resources>

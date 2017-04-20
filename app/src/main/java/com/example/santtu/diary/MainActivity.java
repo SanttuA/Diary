@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
             List<DiaryEntry> values = dataSource.getAllEntries();
             for(int i = 0; i < values.size(); i++)
             {
-                arrayAdapter.add(values.get(i).getId() + ". " + values.get(i).getDate());
+                arrayAdapter.add(getResources().getText(R.string.page)+ " " + values.get(i).getId() + " (" + values.get(i).getDate() +")");
             }
         }
 
